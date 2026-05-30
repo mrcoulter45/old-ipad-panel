@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Neon Panel">
+  <title>Neonexus LED Command Panel</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: #070013;
+      color: #f8f2ff;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-text-size-adjust: 100%;
+      -webkit-user-select: none;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 103, 248, 0.25), rgba(255, 103, 248, 0) 32%),
+        radial-gradient(circle at 82% 0%, rgba(0, 229, 255, 0.20), rgba(0, 229, 255, 0) 28%),
+        linear-gradient(180deg, #120022 0%, #090012 44%, #03020a 100%);
+      z-index: -3;
+    }
+
+    body:after {
+      content: "";
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 45%;
+      background-image:
+        linear-gradient(rgba(0, 232, 255, 0.26) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 52, 220, 0.20) 1px, transparent 1px);
+      background-size: 100% 28px, 42px 100%;
+      -webkit-transform: perspective(360px) rotateX(62deg) translateY(72px);
+      transform: perspective(360px) rotateX(62deg) translateY(72px);
+      -webkit-transform-origin: bottom center;
+      transform-origin: bottom center;
+      opacity: 0.7;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .scanlines {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(180deg, rgba(255,255,255,0.035) 0, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 4px);
+      opacity: 0.20;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    .wrap {
+      width: 94%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 0 36px;
+    }
+
+    .hero {
+      position: relative;
+      border: 1px solid rgba(255, 86, 247, 0.58);
+      border-radius: 26px;
+      padding: 20px 22px;
+      background: rgba(10, 2, 28, 0.80);
+      box-shadow: 0 0 28px rgba(255, 44, 232, 0.34), inset 0 0 36px rgba(0, 235, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .sun {
+      position: absolute;
+      right: 34px;
+      top: 14px;
+      width: 155px;
+      height: 155px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ffe36a 0%, #ff6ccb 48%, #8a38ff 100%);
+      box-shadow: 0 0 40px rgba(255, 94, 209, 0.68);
+      opacity: 0.88;
+      z-index: 0;
+    }
+
+    .sun:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 36px;
+      bottom: 0;
+      background: repeating-linear-gradient(180deg, transparent 0, transparent 11px, rgba(7, 0, 19, 0.95) 12px, rgba(7, 0, 19, 0.95) 18px);
+      border-radius: 0 0 155px 155px;
+    }
+
+    .titleBlock { position: relative; z-index: 2; }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #56f7ff;
+      font-size: 13px;
+      text-shadow: 0 0 12px rgba(86, 247, 255, 0.9);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 38px;
+      line-height: 1.02;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 0 10px #ff4dea, 0 0 26px #7f3cff, 0 0 40px #00eaff;
+    }
+
+    .sub {
+      margin: 10px 0 0;
+      color: #cab8ff;
+      max-width: 650px;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .statusBar {
+      margin-top: 17px;
+      position: relative;
+      z-index: 2;
+      display: block;
+      overflow: hidden;
+    }
+
+    .pill {
+      float: left;
+      margin: 0 10px 8px 0;
+      padding: 9px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 234, 255, 0.45);
+      background: rgba(0, 234, 255, 0.08);
+      color: #e9fbff;
+      font-size: 13px;
+      box-shadow: inset 0 0 14px rgba(0, 234, 255, 0.10), 0 0 14px rgba(0, 234, 255, 0.10);
+    }
+
+    .panelGrid {
+      margin-top: 18px;
+      display: table;
+      width: 100%;
+      border-spacing: 16px;
+      margin-left: -16px;
+    }
+
+    .column {
+      display: table-cell;
+      vertical-align: top;
+      width: 50%;
+    }
+
+    .card {
+      border: 1px solid rgba(98, 238, 255, 0.45);
+      border-radius: 22px;
+      padding: 17px;
+      margin-bottom: 16px;
+      background: rgba(9, 4, 30, 0.80);
+      box-shadow: 0 0 22px rgba(0, 238, 255, 0.13), inset 0 0 28px rgba(255, 47, 228, 0.06);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 17px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #7df8ff;
+      text-shadow: 0 0 12px rgba(125, 248, 255, 0.85);
+    }
+
+    .buttons {
+      overflow: hidden;
+      margin-left: -8px;
+      margin-right: -8px;
+    }
+
+    button, .fakeButton {
+      -webkit-appearance: none;
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      touch-action: manipulation;
+      font-family: inherit;
+    }
+
+    .btn {
+      float: left;
+      width: 46%;
+      min-height: 66px;
+      margin: 8px 2%;
+      border-radius: 18px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, rgba(255, 39, 218, 0.92), rgba(118, 51, 255, 0.86) 52%, rgba(0, 223, 255, 0.78));
+      box-shadow: 0 0 18px rgba(255, 50, 224, 0.44), inset 0 0 20px rgba(255,255,255,0.12);
+      text-shadow: 0 1px 0 rgba(0,0,0,0.42), 0 0 8px rgba(255,255,255,0.5);
+    }
+
+    .btn:active { -webkit-transform: scale(0.97); transform: scale(0.97); opacity: 0.92; }
+
+    .btn.wide { width: 96%; }
+    .btn.dark { background: linear-gradient(135deg, rgba(32, 14, 72, 0.96), rgba(255, 44, 205, 0.62)); }
+    .btn.blue { background: linear-gradient(135deg, rgba(0, 237, 255, 0.90), rgba(48, 55, 255, 0.84)); }
+    .btn.gold { background: linear-gradient(135deg, rgba(255, 221, 87, 0.96), rgba(255, 68, 183, 0.78)); }
+    .btn.off { background: linear-gradient(135deg, rgba(24, 25, 42, 0.96), rgba(105, 103, 135, 0.70)); }
+
+    .row {
+      display: block;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 7px;
+      color: #d7ccff;
+      font-size: 14px;
+      letter-spacing: 0.7px;
+    }
+
+    input[type="text"] {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid rgba(255, 83, 234, 0.52);
+      border-radius: 14px;
+      padding: 0 13px;
+      background: rgba(3, 0, 14, 0.84);
+      color: #fff;
+      font-size: 18px;
+      box-shadow: inset 0 0 18px rgba(255, 66, 230, 0.14);
+    }
+
+    input[type="range"] { width: 100%; }
+
+    .colorDot {
+      float: left;
+      width: 60px;
+      height: 60px;
+      margin: 8px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.72);
+      box-shadow: 0 0 18px rgba(255,255,255,0.26), inset 0 0 15px rgba(255,255,255,0.22);
+    }
+
+    .tiny {
+      color: #a998e7;
+      font-size: 12px;
+      line-height: 1.45;
+      margin: 10px 0 0;
+    }
+
+    .console {
+      min-height: 68px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 84, 231, 0.32);
+      background: rgba(0,0,0,0.34);
+      color: #9ffaff;
+      font-family: Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      box-shadow: inset 0 0 22px rgba(0, 238, 255, 0.08);
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .meterOuter {
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      overflow: hidden;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+    }
+
+    .meterInner {
+      height: 16px;
+      width: 70%;
+      background: linear-gradient(90deg, #00f0ff, #ff3ee7, #ffe45d);
+      box-shadow: 0 0 16px rgba(255, 62, 231, 0.75);
+    }
+
+    .footer {
+      margin-top: 8px;
+      text-align: center;
+      color: #9a8fd3;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 760px) {
+      .panelGrid, .column { display: block; width: auto; border-spacing: 0; margin-left: 0; }
+      .column { width: 100%; }
+      .sun { width: 108px; height: 108px; right: 18px; top: 18px; opacity: 0.55; }
+      h1 { font-size: 30px; }
+      .btn { width: 96%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="wrap">
+    <div class="hero">
+      <div class="sun"></div>
+      <div class="titleBlock">
+        <p class="eyebrow">CoulterTech Office System</p>
+        <h1>Neonexus<br>LED Command</h1>
+        <p class="sub">A retro-futuristic control deck built for an old iPad Air. Big buttons, low-JS, Safari 12 friendly, and ready to command WLED / ESP32 lighting scenes.</p>
+      </div>
+      <div class="statusBar">
+        <div class="pill" id="clockPill">--:--</div>
+        <div class="pill" id="connectionPill">Controller: not configured</div>
+        <div class="pill" id="scenePill">Scene: standby</div>
+      </div>
+    </div>
+
+    <div class="panelGrid">
+      <div class="column">
+        <div class="card">
+          <h2>Primary Scenes</h2>
+          <div class="buttons">
+            <button class="btn" onclick="sceneCyberpunk()">Cyberpunk</button>
+            <button class="btn blue" onclick="sceneWorkbench()">Workbench</button>
+            <button class="btn gold" onclick="sceneFilming()">Filming</button>
+            <button class="btn dark" onclick="sceneNight()">Night Mode</button>
+            <button class="btn wide" onclick="sceneParty()">Synthwave Party Pulse</button>
+            <button class="btn wide off" onclick="allOff()">All Off</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Quick Colors</h2>
+          <div class="buttons">
+            <button class="colorDot" style="background:#ff2bd6" onclick="solid(255,43,214)"></button>
+            <button class="colorDot" style="background:#00eaff" onclick="solid(0,234,255)"></button>
+            <button class="colorDot" style="background:#8b3dff" onclick="solid(139,61,255)"></button>
+            <button class="colorDot" style="background:#ffdd4f" onclick="solid(255,221,79)"></button>
+            <button class="colorDot" style="background:#ff4b5f" onclick="solid(255,75,95)"></button>
+            <button class="colorDot" style="background:#ffffff" onclick="solid(255,255,255)"></button>
+          </div>
+          <div style="clear:both"></div>
+        </div>
+
+        <div class="card">
+          <h2>Brightness</h2>
+          <label for="brightness">Intensity: <span id="brightnessValue">70%</span></label>
+          <input id="brightness" type="range" min="1" max="255" value="178" oninput="brightnessPreview(this.value)" onchange="setBrightness(this.value)">
+          <div class="meterOuter"><div class="meterInner" id="meter"></div></div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="card">
+          <h2>Controller Setup</h2>
+          <div class="row">
+            <label for="controllerUrl">WLED / ESP32 base URL</label>
+            <input id="controllerUrl" type="text" placeholder="http://192.168.1.50" autocapitalize="off" autocomplete="off" autocorrect="off">
+          </div>
+          <div class="buttons">
+            <button class="btn blue" onclick="saveController()">Save</button>
+            <button class="btn dark" onclick="testController()">Test</button>
+          </div>
+          <div style="clear:both"></div>
+          <p class="tiny">For WLED, enter the device URL. This panel uses the WLED JSON API through old-school XMLHttpRequest for older Safari compatibility.</p>
+        </div>
+
+        <div class="card">
+          <h2>Command Console</h2>
+          <div class="console" id="console">SYSTEM BOOT: Neon panel ready.<br>Awaiting controller URL...</div>
+        </div>
+
+        <div class="card">
+          <h2>Offline Mode</h2>
+          <p class="tiny">No controller connected? The buttons still update this panel, so you can mock scenes while wiring up WLED, Home Assistant, Flask, or an ESP32 endpoint later.</p>
+          <div class="buttons">
+            <button class="btn" onclick="fakeHeartbeat()">Panel Check</button>
+            <button class="btn blue" onclick="location.reload()">Reboot UI</button>
+          </div>
+          <div style="clear:both"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">NEONEXUS // OFFICE LED CONTROL // OLD iPAD AIR BUILD</div>
+  </div>
+
+  <script>
+    var storageKey = "neonexusControllerUrl";
+    var lastBrightness = 178;
+
+    function el(id) { return document.getElementById(id); }
+
+    function log(message) {
+      var d = new Date();
+      var time = pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+      el("console").innerHTML = "[" + time + "] " + escapeHtml(message) + "<br>" + el("console").innerHTML;
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>\"]/g, function (c) {
+        return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];
+      });
+    }
+
+    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+    function updateClock() {
+      var d = new Date();
+      var hours = d.getHours();
+      var suffix = hours >= 12 ? "PM" : "AM";
+      var display = hours % 12;
+      if (display === 0) display = 12;
+      el("clockPill").innerHTML = display + ":" + pad(d.getMinutes()) + " " + suffix;
+    }
+
+    function getController() {
+      return (el("controllerUrl").value || "").replace(/\/$/, "");
+    }
+
+    function saveController() {
+      var url = getController();
+      try { localStorage.setItem(storageKey, url); } catch (e) {}
+      el("connectionPill").innerHTML = url ? "Controller: " + url : "Controller: not configured";
+      log(url ? "Saved controller URL: " + url : "Controller URL cleared.");
+    }
+
+    function requestWled(payload, label) {
+      var base = getController();
+      el("scenePill").innerHTML = "Scene: " + label;
+      if (!base) {
+        log("Offline mock: " + label);
+        return;
+      }
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", base + "/json/state", true);
+      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            el("connectionPill").innerHTML = "Controller: online";
+            log("Sent scene: " + label);
+          } else {
+            el("connectionPill").innerHTML = "Controller: error";
+            log("Controller error " + xhr.status + " while sending " + label);
+          }
+        }
+      };
+      try {
+        xhr.send(JSON.stringify(payload));
+        log("Dispatching: " + label);
+      } catch (e) {
+        log("Failed to send command: " + e.message);
+      }
+    }
+
+    function testController() {
+      var base = getController();
+      if (!base) { log("Enter a controller URL first."); return; }
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", base + "/json/info", true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            el("connectionPill").innerHTML = "Controller: online";
+            log("Controller responded successfully.");
+          } else {
+            el("connectionPill").innerHTML = "Controller: error";
+            log("Test failed with HTTP " + xhr.status + ".");
+          }
+        }
+      };
+      try { xhr.send(); log("Testing controller..."); } catch (e) { log("Test failed: " + e.message); }
+    }
+
+    function brightnessPreview(v) {
+      lastBrightness = parseInt(v, 10);
+      var pct = Math.round((lastBrightness / 255) * 100);
+      el("brightnessValue").innerHTML = pct + "%";
+      el("meter").style.width = pct + "%";
+    }
+
+    function setBrightness(v) {
+      brightnessPreview(v);
+      requestWled({bri: lastBrightness}, "brightness " + el("brightnessValue").innerHTML);
+    }
+
+    function solid(r, g, b) {
+      requestWled({on:true, bri:lastBrightness, seg:[{fx:0, col:[[r,g,b]]}]}, "solid rgb(" + r + "," + g + "," + b + ")");
+    }
+
+    function sceneCyberpunk() {
+      requestWled({on:true, bri:lastBrightness, seg:[{fx:100, sx:150, ix:170, pal:10, col:[[255,43,214],[0,234,255],[139,61,255]]}]}, "Cyberpunk Purple/Cyan");
+    }
+
+    function sceneWorkbench() {
+      requestWled({on:true, bri:230, seg:[{fx:0, col:[[255,244,224]]}]}, "Workbench White");
+    }
+
+    function sceneFilming() {
+      requestWled({on:true, bri:205, seg:[{fx:0, col:[[255,70,210]]}]}, "Filming Magenta Glow");
+    }
+
+    function sceneNight() {
+      requestWled({on:true, bri:35, seg:[{fx:0, col:[[52,18,120]]}]}, "Night Mode");
+    }
+
+    function sceneParty() {
+      requestWled({on:true, bri:210, seg:[{fx:37, sx:190, ix:160, pal:5, col:[[255,0,200],[0,255,255],[255,230,80]]}]}, "Synthwave Party Pulse");
+    }
+
+    function allOff() {
+      requestWled({on:false}, "All Off");
+    }
+
+    function fakeHeartbeat() {
+      log("Panel check OK. Touchscreen, storage, clock, and UI are alive.");
+      el("scenePill").innerHTML = "Scene: panel check";
+    }
+
+    function boot() {
+      updateClock();
+      setInterval(updateClock, 10000);
+      var saved = "";
+      try { saved = localStorage.getItem(storageKey) || ""; } catch (e) {}
+      el("controllerUrl").value = saved;
+      el("connectionPill").innerHTML = saved ? "Controller: " + saved : "Controller: not configured";
+      brightnessPreview(lastBrightness);
+      log("Loaded iPad-compatible synthwave dashboard.");
+    }
+
+    boot();
+  </script>
+</body>
+</html>
